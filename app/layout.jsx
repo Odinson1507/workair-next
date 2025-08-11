@@ -1,21 +1,9 @@
-'use client';
-import Link from 'next/link';
+import Nav from './Nav';
 
 export const metadata = {
   title: 'WorkAir',
   description: 'Finance-first mini ERP',
 };
-
-function Nav() {
-  return (
-    <nav style={{ display: 'flex', gap: 12, padding: 8, borderBottom: '1px solid #eee' }}>
-      <Link href="/">Home</Link>
-      <Link href="/chart-of-accounts">Chart of Accounts</Link>
-      <Link href="/customers">Customers</Link>
-      <Link href="/invoices">Invoices</Link>
-    </nav>
-  );
-}
 
 export default function RootLayout({ children }) {
   return (
