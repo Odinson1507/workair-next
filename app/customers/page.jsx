@@ -1,3 +1,4 @@
+// app/customers/page.jsx
 'use client';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
@@ -5,12 +6,7 @@ import { supabase } from '@/lib/supabaseClient';
 export default function Customers() {
   const company = 'KTVL';
   const [rows, setRows] = useState([]);
-  const [form, setForm] = useState({
-    name: '',
-    email: '',
-    country: 'AE',
-    payment_terms: 'Net 30',
-  });
+  const [form, setForm] = useState({ name:'', email:'', country:'AE', payment_terms:'Net 30' });
   const [loading, setLoading] = useState(false);
 
   const load = async () => {
@@ -25,10 +21,7 @@ export default function Customers() {
   const add = async (e) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.from('customers').insert([{
-      company_slug: company,
-      ...form,
-    }]);
+    const { error } = await supabase.from('customers').insert([{ company_slug: company, ...form }]);
     setLoading(false);
     if (error) return alert(error.message);
     setForm({ name:'', email:'', country:'AE', payment_terms:'Net 30' });
@@ -43,24 +36,29 @@ export default function Customers() {
   }, []);
 
   return (
-    <main style={{ padding: 24, display: 'grid', gap: 16 }}>
-      <h1>Customers</h1>
+    <>
+      <div className="toolbar">
+        <div className="h1">Customers</div>
+      </div>
 
-      <form onSubmit={add} style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', gap:8, maxWidth:1000 }}>
-        <input placeholder="Name" value={form.name}
-               onChange={e=>setForm({ ...form, name:e.target.value })} required/>
-        <input placeholder="Email" value={form.email}
-               onChange={e=>setForm({ ...form, email:e.target.value })}/>
-        <input placeholder="Country" value={form.country}
-               onChange={e=>setForm({ ...form, country:e.target.value })}/>
-        <input placeholder="Terms" value={form.payment_terms}
-               onChange={e=>setForm({ ...form, payment_terms:e.target.value })}/>
-        <button style={{ gridColumn:'span 4' }} type="submit" disabled={loading}>
+      <div className="grid cols-4" style={{ marginBottom: 14 }}>
+        <input className="input" placeholder="Name"
+               value={form.name} onChange={e=>setForm({ ...form, name:e.target.value })} />
+        <input className="input" placeholder="Email"
+               value={form.email} onChange={e=>setForm({ ...form, email:e.target.value })} />
+        <input className="input" placeholder="Country"
+               value={form.country} onChange={e=>setForm({ ...form, country:e.target.value })} />
+        <input className="input" placeholder="Terms"
+               value={form.payment_terms} onChange={e=>setForm({ ...form, payment_terms:e.target.value })} />
+      </div>
+
+      <div className="actions" style={{ marginBottom: 18 }}>
+        <button className="btn primary" onClick={add} disabled={loading}>
           {loading ? 'Saving…' : 'Add Customer'}
         </button>
-      </form>
+      </div>
 
-      <table border="1" cellPadding="6" style={{ maxWidth: 1000 }}>
+      <table className="table">
         <thead>
           <tr><th>Name</th><th>Email</th><th>Country</th><th>Terms</th></tr>
         </thead>
@@ -68,13 +66,13 @@ export default function Customers() {
           {rows.map(r => (
             <tr key={r.id}>
               <td>{r.name}</td>
-              <td>{r.email || '-'}</td>
-              <td>{r.country || '-'}</td>
-              <td>{r.payment_terms || '-'}</td>
+              <td className="subtle">{r.email || '—'}</td>
+              <td>{r.country || '—'}</td>
+              <td>{r.payment_terms || '—'}</td>
             </tr>
           ))}
         </tbody>
       </table>
-    </main>
+    </>
   );
 }
