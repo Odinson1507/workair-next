@@ -1,92 +1,121 @@
 'use client';
+
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
+
+const TypeChip = ({ t }) => {
+  const v = (t || '').toLowerCase();
+  const cls =
+    v === 'asset' ? 'chip info' :
+    v === 'liability' ? 'chip warn' :
+    v === 'equity' ? 'chip' :
+    v === 'income' ? 'chip success' :
+    v === 'expense' ? 'chip' :
+    'chip';
+  return <span className={cls}>{t}</span>;
+};
 
 export default function ChartOfAccounts() {
   const [rows, setRows] = useState([]);
   const [form, setForm] = useState({
-    code: '',
-    name: '',
-    type: 'asset',
-    is_tax_relevant: false,
-    tag: ''
+    code: '', name: '', type: 'asset', tax_relevant: false, tag: ''
   });
   const [loading, setLoading] = useState(false);
-  const company = 'KTVL'; // later: set from auth/onboarding
 
-  const load = async () => {
+  const company = 'KTVL';
+
+  async function load() {
     const { data, error } = await supabase
-      .from('chart_of_accounts')
-      .select('id, code, name, type, is_tax_relevant, tag')
+      .from('accounts')
+      .select('id, code, name, type, tax_relevant, tag')
       .eq('company_slug', company)
       .order('code');
     if (!error) setRows(data || []);
-  };
+  }
 
-  const add = async (e) => {
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      if (!data.session) window.location.href = '/login';
+      else load();
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function add(e) {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.from('chart_of_accounts').insert([{
+    const { error } = await supabase.from('accounts').insert([{
       company_slug: company,
-      code: form.code,
-      name: form.name,
-      type: form.type,
-      is_tax_relevant: form.is_tax_relevant,
-      tag: form.tag || null
+      ...form,
     }]);
     setLoading(false);
-    if (!error) {
-      setForm({ code: '', name: '', type: 'asset', is_tax_relevant: false, tag: '' });
-      load();
-    } else {
-      alert(error.message);
-    }
-  };
-
-  useEffect(() => { load(); }, []);
+    if (error) return alert(error.message);
+    setForm({ code:'', name:'', type:'asset', tax_relevant:false, tag:'' });
+    load();
+  }
 
   return (
-    <main style={{ padding: 24, display: 'grid', gap: 24 }}>
-      <h1>Chart of Accounts</h1>
+    <>
+      <div className="toolbar">
+        <div className="h1">Chart of Accounts</div>
+      </div>
 
-      <form onSubmit={add} style={{ display:'grid', gap:8, maxWidth:460 }}>
-        <input placeholder="Code" value={form.code}
-          onChange={(e)=>setForm({...form, code:e.target.value})} required />
-        <input placeholder="Name" value={form.name}
-          onChange={(e)=>setForm({...form, name:e.target.value})} required />
-        <select value={form.type} onChange={(e)=>setForm({...form, type:e.target.value})}>
-          <option value="asset">Asset</option>
-          <option value="liability">Liability</option>
-          <option value="equity">Equity</option>
-          <option value="income">Income</option>
-          <option value="expense">Expense</option>
-        </select>
-        <label style={{ display:'flex', gap:8, alignItems:'center' }}>
-          <input type="checkbox" checked={form.is_tax_relevant}
-            onChange={(e)=>setForm({...form, is_tax_relevant:e.target.checked})}/>
-          Tax relevant
-        </label>
-        <input placeholder="Tag (optional)" value={form.tag}
-          onChange={(e)=>setForm({...form, tag:e.target.value})}/>
-        <button disabled={loading} type="submit">{loading ? 'Saving…' : 'Add Account'}</button>
-      </form>
+      {/* Add account */}
+      <div className="panel pad" style={{ marginBottom: 16 }}>
+        <form onSubmit={add} className="grid cols-5">
+          <input className="input" placeholder="Code" value={form.code}
+                 onChange={e=>setForm({ ...form, code:e.target.value })} required />
+          <input className="input" placeholder="Name" value={form.name}
+                 onChange={e=>setForm({ ...form, name:e.target.value })} required />
+          <select className="select" value={form.type}
+                  onChange={e=>setForm({ ...form, type:e.target.value })}>
+            <option>asset</option>
+            <option>liability</option>
+            <option>equity</option>
+            <option>income</option>
+            <option>expense</option>
+          </select>
+          <label className="input" style={{ display:'flex', alignItems:'center', gap:8 }}>
+            <input type="checkbox" checked={form.tax_relevant}
+                   onChange={e=>setForm({ ...form, tax_relevant:e.target.checked })} />
+            Tax relevant
+          </label>
+          <input className="input" placeholder="Tag (optional)" value={form.tag}
+                 onChange={e=>setForm({ ...form, tag:e.target.value })} />
+          <div style={{ gridColumn:'span 5' }}>
+            <button className="btn primary" type="submit" disabled={loading}>
+              {loading ? 'Saving…' : 'Add Account'}
+            </button>
+          </div>
+        </form>
+      </div>
 
-      <table border="1" cellPadding="6" style={{ maxWidth: 820 }}>
+      {/* Table */}
+      <table className="table">
         <thead>
-          <tr><th>Code</th><th>Name</th><th>Type</th><th>Tax</th><th>Tag</th></tr>
+          <tr>
+            <th className="right" style={{ width:110 }}>Code</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Tax</th>
+            <th>Tag</th>
+          </tr>
         </thead>
         <tbody>
           {rows.map(r => (
             <tr key={r.id}>
-              <td>{r.code}</td>
+              <td className="right">{r.code}</td>
               <td>{r.name}</td>
-              <td>{r.type}</td>
-              <td>{r.is_tax_relevant ? 'Yes' : 'No'}</td>
+              <td><TypeChip t={r.type} /></td>
+              <td>{r.tax_relevant ? 'Yes' : 'No'}</td>
               <td>{r.tag || '-'}</td>
             </tr>
           ))}
+          {!rows.length && (
+            <tr><td colSpan={5} style={{ textAlign:'center', color:'#667085' }}>No accounts.</td></tr>
+          )}
         </tbody>
       </table>
-    </main>
+    </>
   );
 }
