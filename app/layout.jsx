@@ -1,8 +1,6 @@
-// app/layout.jsx
 import './globals.css';
 import { Inter } from 'next/font/google';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import Nav from './nav'; // <-- the client nav
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -11,44 +9,37 @@ export const metadata = {
   description: 'Finance-first mini ERP',
 };
 
-function NavLinks() {
-  const pathname = typeof window === 'undefined' ? '' : window.location.pathname;
-  const is = (p) => pathname === p ? 'active' : '';
-  return (
-    <nav className="mainnav">
-      <Link className={is('/')} href="/">Home</Link>
-      <Link className={is('/chart-of-accounts')} href="/chart-of-accounts">Chart of Accounts</Link>
-      <Link className={is('/customers')} href="/customers">Customers</Link>
-      <Link className={is('/invoices')} href="/invoices">Invoices</Link>
-    </nav>
-  );
-}
-
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={inter.className}>
-      <body>
-        <header className="topbar">
-          <div className="topbar-inner">
-            <div className="brand">
-              <span className="brand-badge" />
-              WorkAir
-            </div>
-            <NavLinks />
-            <div style={{ marginLeft: 'auto' }} />
-            <Link className="btn ghost" href="/login">Login</Link>
-          </div>
+    <html lang="en">
+      <body className={inter.className} style={{ background: '#f7f8fa' }}>
+        {/* Top bar / brand header (server-safe) */}
+        <header
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+            padding: '10px 16px',
+            borderBottom: '1px solid #e5e8eb',
+            background: '#fff',
+          }}
+        >
+          <div
+            style={{
+              width: 28,
+              height: 28,
+              borderRadius: 8,
+              background: '#111',
+            }}
+          />
+          <strong style={{ fontSize: 14 }}>WorkAir</strong>
         </header>
 
-        <main className="wrapper">
-          {/* Optional page toolbar example */}
-          {/* <div className="toolbar">
-              <div className="h1">Page Title</div>
-              <div className="actions"><button className="btn primary">Action</button></div>
-            </div> */}
-          <div className="panel pad">
-            {children}
-          </div>
+        {/* Client Nav that uses usePathname */}
+        <Nav />
+
+        <main style={{ maxWidth: 1100, margin: '16px auto', padding: '0 16px' }}>
+          {children}
         </main>
       </body>
     </html>
