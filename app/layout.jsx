@@ -1,3 +1,5 @@
+import Nav from './nav'; // <-- must match file name (nav.jsx)
+
 import './globals.css';
 import { Inter } from 'next/font/google';
 import Nav from './nav'; // <-- the client nav
